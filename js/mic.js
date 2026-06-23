@@ -41,10 +41,9 @@ const Mic = (() => {
     recognition.onstart = () => {
       isListening = true;
       btn.classList.add('mic--active');
-      btn.textContent = '⏹';
       btn.title = '탭해서 중지';
       input.placeholder = '듣고 있어요... 영어로 말해보세요';
-      input.blur(); // 모바일 키보드 안 올라오게
+      input.blur();
     };
 
     recognition.onresult = (e) => {
@@ -94,7 +93,7 @@ const Mic = (() => {
     const input = document.getElementById('user-input');
     isListening = false;
     btn?.classList.remove('mic--active');
-    if (btn) { btn.textContent = '🎤'; btn.title = '마이크로 말하기'; }
+    if (btn) { btn.title = '마이크로 말하기'; }
     input.placeholder = '영어로 입력하거나 🎤 눌러서 말하세요...';
     try { recognition?.abort(); } catch(e) {}
     recognition = null;
