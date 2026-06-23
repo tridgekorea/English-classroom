@@ -5,7 +5,7 @@
 ══════════════════════════════════════ */
 
 /* Dark (default) */
-:root, [data-theme="dark"] {
+html, [data-theme="dark"] {
   --bg: #0f1117;
   --bg2: #181c27;
   --bg3: #1e2335;
