@@ -15,8 +15,10 @@ const App = (() => {
     setupInput();
     setupHint();
     setupSidebar();
+    setupTheme();
     Chat.renderFeedbackHistory();
     showTopicPicker();
+    Mic.init();
   }
 
   // ── API Key ──
@@ -306,6 +308,25 @@ const App = (() => {
     isLoading = false;
     document.getElementById('send-btn').disabled = false;
     document.getElementById('send-btn').textContent = '보내기';
+  }
+
+  // ── Theme ──
+  function setupTheme() {
+    const saved = localStorage.getItem('speakup_theme') || 'dark';
+    applyTheme(saved);
+    document.querySelectorAll('.theme-dot').forEach(btn => {
+      btn.addEventListener('click', () => {
+        applyTheme(btn.dataset.theme);
+        localStorage.setItem('speakup_theme', btn.dataset.theme);
+      });
+    });
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.querySelectorAll('.theme-dot').forEach(b => {
+      b.classList.toggle('active', b.dataset.theme === theme);
+    });
   }
 
   return { init, startConversation };
