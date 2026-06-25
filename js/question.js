@@ -31,7 +31,9 @@ STRICTLY return JSON only:
     const btn = document.getElementById('question-submit-btn');
     const input = document.getElementById('question-input');
     btn.addEventListener('click', ask);
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ask(); }
+    });
   }
 
   async function ask() {
