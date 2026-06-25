@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-tab="conversation">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SpeakUp — AI 영어 회화 연습</title>
+  <title>SpeakUp — AI 영어 학습</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
+<body data-tab="conversation">
 
 <!-- API Key Modal -->
 <div class="modal-overlay" id="api-modal">
   <div class="modal">
     <h2>🔑 API 키 입력</h2>
-    <p>Claude API 키를 입력하면 AI와 영어 회화 연습을 시작할 수 있어요.<br>키는 브라우저 로컬에만 저장되고 외부로 전송되지 않아요.</p>
+    <p>Claude API 키를 입력하면 모든 기능을 사용할 수 있어요.<br>키는 브라우저에만 저장되며 외부 전송되지 않아요.</p>
     <input type="password" id="api-key-input" placeholder="sk-ant-..." />
     <div class="modal-error" id="api-key-error"></div>
     <button class="modal-save" id="api-key-save">저장하고 시작하기</button>
@@ -30,91 +30,229 @@
   </div>
 </div>
 
-<!-- Header -->
+<!-- ── HEADER ── -->
 <header>
-  <div class="header__logo">Speak<span>Up</span></div>
-  <div class="header__scenario" id="scenario-label">주제를 선택하세요</div>
-  <div class="header__actions">
-    <div class="header__turn">대화 <strong id="turn-count">0</strong>턴</div>
-    <span class="save-status" id="save-status"></span>
-    <button class="icon-btn" id="history-toggle">📚 세션 히스토리</button>
-    <button class="icon-btn" id="change-key-btn">🔑 키 변경</button>
-    <div class="theme-switcher">
-      <button class="theme-dot theme-dark active" data-theme="dark" title="다크"></button>
-      <button class="theme-dot theme-light" data-theme="light" title="라이트"></button>
-      <button class="theme-dot theme-pink" data-theme="pink" title="핑크"></button>
-      <button class="theme-dot theme-orange" data-theme="orange" title="오렌지"></button>
+  <div class="header-top">
+    <div class="header__logo">Speak<span>Up</span></div>
+    <div class="header__actions">
+      <div id="turn-area" style="display:flex;align-items:center;gap:8px">
+        <div class="header__turn">대화 <strong id="turn-count">0</strong>턴</div>
+        <span class="save-status" id="save-status"></span>
+        <button class="icon-btn" id="history-toggle">📋 히스토리</button>
+      </div>
+      <button class="icon-btn" id="change-key-btn">🔑 키 변경</button>
     </div>
   </div>
+  <nav class="tab-bar">
+    <button class="tab-item active" data-tab="conversation"><span class="tab-emoji">💬</span> Conversation</button>
+    <button class="tab-item" data-tab="bookshow"><span class="tab-emoji">🎭</span> Book&Show</button>
+    <button class="tab-item" data-tab="diary"><span class="tab-emoji">📔</span> Diary</button>
+    <button class="tab-item" data-tab="question"><span class="tab-emoji">❓</span> Question</button>
+    <button class="tab-item" data-tab="mynote"><span class="tab-emoji">📌</span> My Note</button>
+    <button class="tab-item" data-tab="practice"><span class="tab-emoji">🔥</span> Practice</button>
+  </nav>
 </header>
 
-<!-- Layout -->
-<div class="layout">
+<!-- ── APP BODY ── -->
+<div class="app-body">
 
-  <!-- Left Panel -->
-  <aside class="left-panel">
-    <div class="panel-section">
-      <div class="panel-section__label">시나리오</div>
-      <button class="scenario-btn active" data-scenario="daily"><span class="scen-emoji">☕</span> Daily Chat</button>
-      <button class="scenario-btn" data-scenario="business"><span class="scen-emoji">💼</span> Business</button>
-      <button class="scenario-btn" data-scenario="travel"><span class="scen-emoji">✈️</span> Travel</button>
-      <button class="scenario-btn" data-scenario="interview"><span class="scen-emoji">🎤</span> Interview</button>
-    </div>
-    <div class="panel-section">
-      <div class="panel-section__label">레벨</div>
-      <button class="level-btn" data-level="beginner">초급 Beginner</button>
-      <button class="level-btn active" data-level="intermediate">중급 Intermediate</button>
-      <button class="level-btn" data-level="advanced">고급 Advanced</button>
-      <div class="level-desc" id="level-desc">Natural everyday English</div>
-    </div>
-  </aside>
+  <!-- ════════════════════════════════
+       TAB 1: CONVERSATION
+  ════════════════════════════════ -->
+  <div class="tab-content active" data-tab="conversation" style="flex-direction:row">
 
-  <!-- Main -->
-  <main class="main">
-    <!-- Topic Picker -->
-    <div id="topic-picker"></div>
-
-    <!-- Chat Area -->
-    <div id="chat-area" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
-      <div class="chat-topbar">
-        <button class="icon-btn" id="change-topic-btn">← 주제 변경</button>
-        <button class="icon-btn save-btn" id="save-btn">💾 저장</button>
+    <!-- Left Panel -->
+    <aside class="left-panel">
+      <div>
+        <div class="panel-label">시나리오</div>
+        <button class="scenario-btn active" data-scenario="daily">☕ Daily Chat</button>
+        <button class="scenario-btn" data-scenario="business">💼 Business</button>
+        <button class="scenario-btn" data-scenario="travel">✈️ Travel</button>
+        <button class="scenario-btn" data-scenario="interview">🎤 Interview</button>
+        <button class="scenario-btn" data-scenario="popculture">🎭 Pop Culture</button>
+        <button class="scenario-btn" data-scenario="phrasal">🔥 Phrasal Verbs</button>
       </div>
-      <div id="chat-box"></div>
-      <div class="input-area">
-        <div class="input-wrapper">
-          <textarea id="user-input" rows="1" placeholder="영어로 입력하거나 🎤 눌러서 말하세요..."></textarea>
-          <button id="mic-btn" title="마이크로 말하기">🎤</button>
+      <div>
+        <div class="panel-label">레벨</div>
+        <button class="level-btn" data-level="beginner">초급 Beginner</button>
+        <button class="level-btn active" data-level="intermediate">중급 Intermediate</button>
+        <button class="level-btn" data-level="advanced">고급 Advanced</button>
+        <div class="level-desc" id="level-desc">Natural everyday English</div>
+      </div>
+    </aside>
+
+    <!-- Chat Main -->
+    <div class="chat-main">
+      <!-- Topic Picker -->
+      <div id="topic-picker"></div>
+
+      <!-- Chat Area -->
+      <div id="chat-area" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
+        <div class="chat-topbar">
+          <div class="header__scenario" id="scenario-label" style="font-size:13px;color:var(--text2);background:var(--bg);border:1.5px solid var(--border);border-radius:20px;padding:4px 12px;">주제</div>
+          <button class="icon-btn" id="change-topic-btn">← 주제 변경</button>
+          <button class="icon-btn save-btn" id="save-btn">💾 저장</button>
         </div>
-        <div class="input-actions">
-          <button id="hint-btn">💡 힌트</button>
-          <button id="send-btn">보내기</button>
+        <div id="chat-box"></div>
+        <div class="input-area">
+          <div class="input-wrapper">
+            <textarea id="user-input" rows="1" placeholder="영어로 입력하거나 🎤 눌러서 말하세요..."></textarea>
+            <button id="mic-btn" title="마이크로 말하기">🎤</button>
+          </div>
+          <div class="input-actions">
+            <button id="hint-btn">💡 힌트</button>
+            <button id="send-btn">보내기</button>
+          </div>
         </div>
       </div>
     </div>
-  </main>
 
-  <!-- Sidebar: tabs -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar__tabs">
-      <button class="tab-btn active" data-tab="feedback">💬 피드백</button>
-      <button class="tab-btn" data-tab="history">📚 히스토리</button>
-    </div>
-    <div class="tab-panel active" id="tab-feedback">
-      <div id="feedback-list"></div>
-    </div>
-    <div class="tab-panel" id="tab-history">
-      <div id="session-list"></div>
-    </div>
-  </aside>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar__tabs">
+        <button class="stab-btn active" data-tab="feedback">💬 피드백</button>
+        <button class="stab-btn" data-tab="history">📚 히스토리</button>
+      </div>
+      <div class="stab-panel active" id="stab-feedback"><div id="feedback-list"></div></div>
+      <div class="stab-panel" id="stab-history"><div id="session-list"></div></div>
+    </aside>
 
-</div>
+  </div>
+
+  <!-- ════════════════════════════════
+       TAB 2: BOOK & SHOW
+  ════════════════════════════════ -->
+  <div class="tab-content" data-tab="bookshow">
+    <div class="bookshow-layout">
+      <div class="bookshow-header">
+        <h2>🎭 Book &amp; Show</h2>
+        <p>Friends와 Diary of a Wimpy Kid에서 자주 쓰이는 실제 표현을 배워요</p>
+        <div class="source-tabs">
+          <button class="source-tab active" data-source="friends">📺 Friends</button>
+          <button class="source-tab" data-source="wimpy">📖 Wimpy Kid</button>
+        </div>
+      </div>
+      <div class="bookshow-body" id="bookshow-body">
+        <div class="diary-placeholder">아래 버튼을 눌러 표현을 불러오세요!</div>
+      </div>
+      <div class="bookshow-generate">
+        <button class="generate-btn" id="bookshow-generate-btn">✨ 표현 불러오기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       TAB 3: DIARY
+  ════════════════════════════════ -->
+  <div class="tab-content" data-tab="diary">
+    <div class="diary-layout">
+      <div class="diary-editor">
+        <div class="diary-toolbar">
+          <h3>📔 오늘의 영어 일기</h3>
+          <div class="diary-date" id="diary-date"></div>
+        </div>
+        <textarea id="diary-input" placeholder="오늘 있었던 일을 영어로 자유롭게 써보세요.
+
+예: Today I went to the cafe with my friend. We talked about our weekend plans..."></textarea>
+        <div class="diary-submit">
+          <button class="diary-submit-btn" id="diary-submit-btn">✏️ 첨삭받기</button>
+          <span style="font-size:12px;color:var(--text3)">문법, 자연스러운 표현, 더 자주 쓰이는 표현을 알려드려요</span>
+        </div>
+      </div>
+      <div class="diary-feedback-panel" id="diary-feedback-panel">
+        <div class="diary-placeholder">일기를 쓰고 첨삭받기 버튼을 눌러보세요!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       TAB 4: QUESTION
+  ════════════════════════════════ -->
+  <div class="tab-content" data-tab="question">
+    <div class="question-layout">
+      <div class="question-input-area">
+        <h3>❓ 영어 표현 질문하기</h3>
+        <div class="question-row">
+          <input type="text" id="question-input" placeholder="궁금한 표현을 물어보세요 (예: find out vs get to know 차이가 뭐야?)" />
+          <button class="question-submit-btn" id="question-submit-btn">질문하기</button>
+        </div>
+      </div>
+      <div class="question-results" id="question-results">
+        <div class="diary-placeholder" style="margin-top:3rem">
+          궁금한 표현, 헷갈리는 표현을 질문해보세요.<br>
+          뉘앙스 차이, 사용 빈도, 상황별 사용법을 알려드려요.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       TAB 5: MY NOTE
+  ════════════════════════════════ -->
+  <div class="tab-content" data-tab="mynote">
+    <div class="mynote-layout">
+      <div class="mynote-toolbar">
+        <h3>📌 My Note</h3>
+        <div class="mynote-add-row">
+          <input type="text" id="note-input" placeholder="새 표현 추가 (예: stick around)" />
+          <button class="note-add-btn" id="note-add-btn">+ 추가</button>
+        </div>
+      </div>
+      <div class="notes-grid" id="notes-grid">
+        <div class="notes-empty">아직 저장된 표현이 없어요.<br>Question이나 Book&amp;Show에서 표현을 저장해보세요!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       TAB 6: PRACTICE
+  ════════════════════════════════ -->
+  <div class="tab-content" data-tab="practice">
+    <div class="practice-layout">
+      <div class="practice-header">
+        <h3>🔥 Practice — 한국어 → 영어 3단계 연습</h3>
+        <p>배운 표현을 활용해 점점 복잡한 문장을 만들어봐요</p>
+        <div class="practice-source-row" id="practice-source-row">
+          <button class="practice-source-btn active" data-src="note">📌 내 노트에서</button>
+          <button class="practice-source-btn" data-src="custom">✏️ 직접 입력</button>
+          <div id="practice-custom-row" style="display:none">
+            <input type="text" id="practice-custom-input" placeholder="표현 입력 (예: give up)" />
+          </div>
+        </div>
+      </div>
+      <div class="practice-body" id="practice-body">
+        <div id="practice-start-screen" style="text-align:center">
+          <div style="font-size:48px;margin-bottom:16px">🔥</div>
+          <div style="font-size:18px;font-weight:700;font-family:var(--font-display);margin-bottom:8px">연습 시작하기</div>
+          <div style="font-size:14px;color:var(--text2);margin-bottom:24px">내 노트의 표현이나 직접 입력한 표현으로<br>3단계 문장 만들기 연습을 해봐요</div>
+          <button class="practice-start-btn" id="practice-start-btn">🎲 문제 시작</button>
+        </div>
+        <div id="practice-exercise" style="display:none;flex-direction:column;gap:16px">
+          <div class="practice-phrase-header">
+            <div class="practice-phrase-label">오늘의 표현</div>
+            <div class="practice-phrase-main" id="practice-phrase-main"></div>
+            <div class="practice-phrase-meaning" id="practice-phrase-meaning"></div>
+          </div>
+          <div class="practice-steps" id="practice-steps-list"></div>
+          <button class="practice-next-btn" onclick="PracticeTab.onEnter(); document.getElementById('practice-start-btn').click()">🎲 다음 표현</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end app-body -->
 
 <script src="js/scenarios.js"></script>
 <script src="js/api.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/chat.js"></script>
 <script src="js/mic.js"></script>
+<script src="js/notes.js"></script>
+<script src="js/tabs.js"></script>
+<script src="js/bookshow.js"></script>
+<script src="js/diary.js"></script>
+<script src="js/question.js"></script>
+<script src="js/practice.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

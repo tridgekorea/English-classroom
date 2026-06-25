@@ -4,13 +4,17 @@ const Chat = (() => {
   let turnCount = 0;
 
   function parseAIResponse(raw) {
-    const replyMatch = raw.match(/\[REPLY\]([\s\S]*?)(?=\[PRONUNCIATION\]|\[FEEDBACK\]|$)/);
-    const pronMatch  = raw.match(/\[PRONUNCIATION\]([\s\S]*?)(?=\[REPLY\]|\[FEEDBACK\]|$)/);
-    const fbMatch    = raw.match(/\[FEEDBACK\]([\s\S]*?)(?=\[REPLY\]|\[PRONUNCIATION\]|$)/);
+    const get = (tag) => {
+      const r = new RegExp(`\\[${tag}\\]([\\s\\S]*?)(?=\\[(?:REPLY|PRONUNCIATION|FEEDBACK|SUGGESTIONS|EXPRESSION)\\]|$)`);
+      const m = raw.match(r);
+      return m ? m[1].trim() : '';
+    };
     return {
-      reply:        replyMatch ? replyMatch[1].trim() : raw.trim(),
-      pronunciation: pronMatch ? pronMatch[1].trim()  : '',
-      feedback:     fbMatch   ? fbMatch[1].trim()    : ''
+      reply:        get('REPLY'),
+      pronunciation: get('PRONUNCIATION'),
+      feedback:     get('FEEDBACK'),
+      suggestions:  get('SUGGESTIONS'),
+      expression:   get('EXPRESSION')
     };
   }
 
@@ -22,6 +26,7 @@ const Chat = (() => {
   }
 
   function renderAIMessage(parsed) {
+    // Pronunciation
     let pronHTML = '';
     if (parsed.pronunciation && parsed.pronunciation !== '없음') {
       const lines = parsed.pronunciation.split('\n').filter(l => l.trim());
@@ -30,6 +35,8 @@ const Chat = (() => {
         ${lines.map(l => `<div class="pron__line">${esc(l)}</div>`).join('')}
       </div>`;
     }
+
+    // Feedback
     let fbHTML = '';
     if (parsed.feedback) {
       fbHTML = `<div class="msg__feedback">
@@ -37,13 +44,45 @@ const Chat = (() => {
         <span class="feedback__text">${esc(parsed.feedback)}</span>
       </div>`;
     }
+
+    // Suggestions (일반 대화)
+    let sugHTML = '';
+    if (parsed.suggestions) {
+      const lines = parsed.suggestions.split('\n').filter(l => l.trim());
+      sugHTML = `<div class="msg__suggestions">
+        <span class="sug__label">💡 이렇게 말해볼 수 있어요</span>
+        ${lines.map(l => {
+          const text = l.replace(/^[ABC]\.\s*/,'').trim();
+          return `<button class="sug__pill" onclick="Chat.fillInput(this)">${esc(text)}</button>`;
+        }).join('')}
+      </div>`;
+    }
+
+    // Expression (팝컬처)
+    let exprHTML = '';
+    if (parsed.expression) {
+      const lines = parsed.expression.split('\n').filter(l => l.trim());
+      exprHTML = `<div class="msg__expression">
+        <span class="expr__label">🎬 실제 표현</span>
+        ${lines.map(l => `<div class="expr__line">${esc(l)}</div>`).join('')}
+      </div>`;
+    }
+
     append(`<div class="msg msg--ai">
       <div class="msg__avatar msg__avatar--ai">AI</div>
       <div class="msg__content">
-        <div class="msg__bubble msg__bubble--ai">${esc(parsed.reply)}</div>
-        ${pronHTML}${fbHTML}
+        <div class="msg__bubble msg__bubble--ai">${esc(parsed.reply || '...')}</div>
+        ${pronHTML}${exprHTML}${sugHTML}${fbHTML}
       </div>
     </div>`);
+  }
+
+  function fillInput(btn) {
+    const input = document.getElementById('user-input');
+    input.value = btn.textContent;
+    input.focus();
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
   }
 
   function renderSystemMessage(text) {
@@ -125,7 +164,7 @@ const Chat = (() => {
   return {
     parseAIResponse, renderUserMessage, renderAIMessage, renderSystemMessage,
     renderTyping, removeTyping, addToHistory, addFeedback, addFeedbackDirect,
-    renderFeedbackHistory, reset, incrementTurn, setTurnCount,
+    renderFeedbackHistory, reset, incrementTurn, setTurnCount, fillInput,
     getHistory: () => history,
     getTurnCount: () => turnCount,
     getFeedbackHistory: () => feedbackHistory
