@@ -42,6 +42,14 @@ STRICTLY return JSON only — no markdown, no preamble:
 
     const sourceLabel = currentSource === 'friends' ? 'Friends (the TV show)' : 'Diary of a Wimpy Kid (the book series)';
 
+    // 이미 본 표현 추적
+    const seenKey = `speakup_seen_${currentSource}`;
+    const seen = JSON.parse(localStorage.getItem(seenKey) || '[]');
+
+    const categories = ['sarcasm & humor', 'daily social situations', 'expressing emotions', 'relationships', 'work & school stress', 'pop culture references', 'excuses & comebacks', 'friendship & loyalty'];
+    const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+    const avoidHint = seen.length > 0 ? ` Do NOT repeat these expressions: ${seen.slice(-9).join(', ')}.` : '';
+
     try {
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -53,14 +61,19 @@ STRICTLY return JSON only — no markdown, no preamble:
         },
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
-          max_tokens: 1000,
+          max_tokens: 2000,
           system: SYSTEM,
-          messages: [{ role: 'user', content: `Source: ${sourceLabel}. Give me 3 authentic high-frequency expressions that Korean learners would find most useful for real daily conversation.` }]
+          messages: [{ role: 'user', content: `Source: ${sourceLabel}. Category focus: "${randomCategory}". Give me 3 DIFFERENT authentic expressions useful for Korean learners.${avoidHint} Pick expressions that vary in type (idioms, phrasal verbs, set phrases).` }]
         })
       });
       const data = await res.json();
       const raw = data.content?.[0]?.text || '';
-      const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+      const jsonMatch = raw.match(/\{[\s\S]*\}/); if (!jsonMatch) throw new Error('no json'); const parsed = JSON.parse(jsonMatch[0]);
+
+      // 본 표현 저장
+      const newPhrases = parsed.expressions.map(e => e.phrase);
+      localStorage.setItem(seenKey, JSON.stringify([...seen, ...newPhrases].slice(-30)));
+
       renderExpressions(parsed.expressions, sourceLabel);
     } catch(e) {
       body.innerHTML = '<div class="diary-placeholder">오류가 발생했어요. 다시 시도해주세요.</div>';

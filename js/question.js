@@ -57,14 +57,17 @@ STRICTLY return JSON only:
         },
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
-          max_tokens: 1000,
+          max_tokens: 2000,
           system: SYSTEM,
           messages: [{ role: 'user', content: q }]
         })
       });
       const data = await res.json();
       const raw = data.content?.[0]?.text || '';
-      const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+      // JSON 추출 강화 - 중괄호 블록 찾기
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('no json');
+      const parsed = JSON.parse(jsonMatch[0]);
       renderAnswer(q, parsed);
       input.value = '';
     } catch(e) {
